@@ -20,9 +20,13 @@ namespace StarterAssets
         [Header("Mouse Cursor Settings")]
 		public bool cursorLocked = true;
 		public bool cursorInputForLook = true;
+		[Header("Shooting Settings")]
+		public GameObject projectilePrefab;
+		public Transform projectileSpawnPoint;
+		public float projectileForce = 20f;
 
 #if ENABLE_INPUT_SYSTEM
-		public void OnMove(InputValue value)
+        public void OnMove(InputValue value)
 		{
 			MoveInput(value.Get<Vector2>());
 		}
@@ -50,6 +54,8 @@ namespace StarterAssets
         {
             // Implement shooting logic here
             Debug.Log("REAL SHOTING LOGIC GOES HERE");
+            GameObject newprojectile = Instantiate(projectilePrefab, projectileSpawnPoint.position, transform.rotation);
+			newprojectile.GetComponent<Rigidbody>().AddForce(projectileSpawnPoint.up * projectileForce, ForceMode.Impulse);
         }
 
         public void OnSprint(InputValue value)
