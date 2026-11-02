@@ -56,6 +56,7 @@ namespace StarterAssets
             Debug.Log("REAL SHOTING LOGIC GOES HERE");
             GameObject newprojectile = Instantiate(projectilePrefab, projectileSpawnPoint.position, transform.rotation);
 			newprojectile.GetComponent<Rigidbody>().AddForce(projectileSpawnPoint.up * projectileForce, ForceMode.Impulse);
+			Destroy(newprojectile, 5f); // Destroy the projectile after 5 seconds
         }
 
         public void OnSprint(InputValue value)
