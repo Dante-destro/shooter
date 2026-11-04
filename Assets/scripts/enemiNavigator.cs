@@ -17,7 +17,7 @@ public class enemiNavigator : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        
+        agent.destination = target.position; // Update the agent's destination to the target's position every frame
     }
 
 }
