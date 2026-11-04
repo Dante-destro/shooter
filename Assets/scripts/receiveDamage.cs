@@ -23,7 +23,7 @@ public class recive : MonoBehaviour
         {
             Debug.Log("Received damage from projectile");
             Destroy(collision.gameObject);
-            health -= 25;
+            health -= 20;
             healthText.text =  health.ToString();
             Debug.Log("Health: " + health);
             if (health <= 0)
