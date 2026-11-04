@@ -1,9 +1,12 @@
 using UnityEngine;
+using UnityEngine.UI;
+using TMPro;    
 
 public class recive : MonoBehaviour
 {
     public int health = 100;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
+    public TextMeshProUGUI healthText;
     void Start()
     {
         
@@ -20,7 +23,8 @@ public class recive : MonoBehaviour
         {
             Debug.Log("Received damage from projectile");
             Destroy(collision.gameObject);
-            health -= 10;
+            health -= 25;
+            healthText.text =  health.ToString();
             Debug.Log("Health: " + health);
             if (health <= 0)
             {
