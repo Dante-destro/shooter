@@ -10,14 +10,18 @@ public class enemiNavigator : MonoBehaviour
     {
         agent = GetComponent<NavMeshAgent>();
         target = GameObject.FindGameObjectWithTag("Player").transform;
-        agent.destination= target.position;
+    
        
     }
 
     // Update is called once per frame
     void Update()
     {
-        agent.destination = target.position; // Update the agent's destination to the target's position every frame
+        InvokeRepeating("UpdateTarget", 3f, 5f);
     }
 
-}
+    private void UpdateTarget()
+    {
+        agent.destination = target.position; // Update the agent's destination to the target's position every frame
+    }
+     }
