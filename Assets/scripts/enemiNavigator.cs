@@ -1,13 +1,17 @@
 using UnityEngine;
 using UnityEngine.AI;
-using System.Collections; // Necesario para usar corrutinas
+using System.Collections;
 
-public class enemyNavigation : MonoBehaviour
+public class EnemyNavigation : MonoBehaviour
 {
     public NavMeshAgent agent;
     public Transform target;
     public Animator enemyAnimator;
     public bool isDead = false;
+
+    [Header("Tiempo de Espera")]
+    public float chaseDelay = 3f;      // Tiempo en segundos que espera antes de empezar a perseguir
+    private bool canChase = false;     // Controla si ya puede empezar a moverse
 
     void Start()
     {
@@ -21,70 +25,91 @@ public class enemyNavigation : MonoBehaviour
         }
 
         enemyAnimator = GetComponentInChildren<Animator>();
+
+        // Iniciamos la corrutina de espera antes de perseguir
+        StartCoroutine(WaitBeforeChase());
+    }
+
+    IEnumerator WaitBeforeChase()
+    {
+        // Aseguramos que el agente esté detenido al inicio
+        agent.isStopped = true;
+
+        // Espera los segundos configurados en 'chaseDelay'
+        yield return new WaitForSeconds(chaseDelay);
+
+        // Pasado el tiempo, permitimos que empiece la persecución
+        canChase = true;
+        agent.isStopped = false;
     }
 
     void Update()
     {
-        if (isDead)
-        {
-            return;
-        }
+        // Si está muerto, no hacemos nada
+        if (isDead) return;
 
-        if (agent.velocity.magnitude > 0.1f)
+        // Solo persigue si ya pasó el tiempo de espera
+        if (canChase && target != null)
         {
-            enemyAnimator.SetBool("isMoving", true);
+            agent.SetDestination(target.position);
+
+            // Control de la animación de movimiento
+            if (agent.desiredVelocity.magnitude > 0.1f && !agent.isStopped)
+            {
+                enemyAnimator.SetBool("IsMoving", true);
+            }
+            else
+            {
+                enemyAnimator.SetBool("IsMoving", false);
+            }
         }
         else
         {
-            enemyAnimator.SetBool("isMoving", false);
-        }
-    }
-
-    private void UpdateTarget()
-    {
-        if (target != null && !isDead)
-        {
-            agent.SetDestination(target.position);
+            // Mientras espera, se asegura de mantener la animación de Idle
+            enemyAnimator.SetBool("IsMoving", false);
         }
     }
 
     public void Die()
     {
-        if (isDead) return; // Evita que se ejecute varias veces
+        if (isDead) return;
         isDead = true;
 
         Debug.Log("Enemy has died!");
 
-        // 1. Activar animación y detener el movimiento
+        // Apagamos el movimiento
+        enemyAnimator.SetBool("IsMoving", false);
+
+        // Activamos la animación de muerte
         enemyAnimator.SetTrigger("Die");
+
         agent.isStopped = true;
         agent.enabled = false;
 
-        // 2. Desactivar el colisionador para que no moleste
+        // Desactivar el colisionador
         Collider col = GetComponent<Collider>();
         if (col != null)
         {
             col.enabled = false;
         }
 
-        // 3. Iniciar la corrutina que espera a que termine la animación antes de sumar la victoria y destruirse
+        // Iniciamos la secuencia de espera antes de sumar la victoria y destruir
         StartCoroutine(DeathSequence());
     }
 
     IEnumerator DeathSequence()
     {
-        // Espera el tiempo exacto que dura tu animación de muerte (ej. 2 segundos)
-        // Cambia este número por lo que dure tu animación real en segundos
-        yield return new WaitForSeconds(5f);
+        // Espera a que termine la animación de muerte
+        yield return new WaitForSeconds(2f);
 
-        // 4. DESPUÉS de la animación, sumamos la baja al PlayerManager (esto activará la victoria si es el último)
+        // Sumar la baja al PlayerManager (esto activará la victoria si es el último)
         PlayerManager player = FindObjectOfType<PlayerManager>();
         if (player != null)
         {
             player.AddDefeatedEnemy();
         }
 
-        // 5. Destruir el objeto
+        // Destruir el objeto
         Destroy(gameObject);
     }
 }

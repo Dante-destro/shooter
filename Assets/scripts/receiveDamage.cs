@@ -7,14 +7,14 @@ public class receiveDamage : MonoBehaviour
 
     public int health = 100;
 
-    public enemyNavigation enemyNavigation;
+    public EnemyNavigation enemyNavigation;
 
     [Header("Animación")]
     public Animator animator; // Referencia al Animator del enemigo
 
     void Start()
     {
-        enemyNavigation = GetComponent<enemyNavigation>();
+        enemyNavigation = GetComponent<EnemyNavigation>();
 
         // Si no asignaste el Animator en el inspector, lo busca automáticamente en el objeto
         if (animator == null)
