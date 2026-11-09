@@ -375,6 +375,7 @@ MonoBehaviour:
   healthText: {fileID: 9133926975267237159}
   health: 100
   enemyNavigation: {fileID: 0}
+  animator: {fileID: 0}
 --- !u!195 &5981723290768336148
 NavMeshAgent:
   m_ObjectHideFlags: 0
@@ -413,6 +414,8 @@ MonoBehaviour:
   target: {fileID: 0}
   enemyAnimator: {fileID: 0}
   isDead: 0
+  updateTargetInterval: 0.2
+  deathAnimationDuration: 5.2
 --- !u!1 &7416173571364331217
 GameObject:
   m_ObjectHideFlags: 0

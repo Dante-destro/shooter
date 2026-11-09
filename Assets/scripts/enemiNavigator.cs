@@ -9,9 +9,11 @@ public class EnemyNavigation : MonoBehaviour
     public Animator enemyAnimator;
     public bool isDead = false;
 
-    [Header("Tiempo de Espera")]
-    public float chaseDelay = 3f;      // Tiempo en segundos que espera antes de empezar a perseguir
-    private bool canChase = false;     // Controla si ya puede empezar a moverse
+    [Header("Configuración de Persecución")]
+    public float updateTargetInterval = 0.3f; // Cada cuánto tiempo el Invoke refresca tu posición
+
+    [Header("Tiempos de Muerte")]
+    public float deathAnimationDuration = 5.2f; // Duración exacta de la animación de muerte
 
     void Start()
     {
@@ -21,51 +23,46 @@ public class EnemyNavigation : MonoBehaviour
         if (playerObj != null)
         {
             target = playerObj.transform;
-            InvokeRepeating("UpdateTarget", 3f, 2f);
         }
 
         enemyAnimator = GetComponentInChildren<Animator>();
 
-        // Iniciamos la corrutina de espera antes de perseguir
-        StartCoroutine(WaitBeforeChase());
+        // Iniciamos una corrutina muy corta solo para asegurar la colocación en el NavMesh
+        StartCoroutine(InitializeAgent());
     }
 
-    IEnumerator WaitBeforeChase()
+    IEnumerator InitializeAgent()
     {
-        // Aseguramos que el agente esté detenido al inicio
-        agent.isStopped = true;
+        // Espera un frame para evitar errores de NavMeshAgent al aparecer
+        yield return null;
 
-        // Espera los segundos configurados en 'chaseDelay'
-        yield return new WaitForSeconds(chaseDelay);
+        if (agent != null && agent.isOnNavMesh)
+        {
+            agent.isStopped = false;
+            // Arrancamos el InvokeRepeating para que empiece a perseguirte continuamente
+            InvokeRepeating("UpdateTarget", 0f, updateTargetInterval);
+        }
+    }
 
-        // Pasado el tiempo, permitimos que empiece la persecución
-        canChase = true;
-        agent.isStopped = false;
+    // Método que ejecuta el Invoke periódicamente para actualizar la ruta
+    void UpdateTarget()
+    {
+        if (isDead || target == null || agent == null || !agent.isOnNavMesh) return;
+
+        agent.SetDestination(target.position);
     }
 
     void Update()
     {
-        // Si está muerto, no hacemos nada
         if (isDead) return;
 
-        // Solo persigue si ya pasó el tiempo de espera
-        if (canChase && target != null)
+        // Control de la animación de movimiento ("IsMoving" con I mayúscula)
+        if (agent != null && agent.isOnNavMesh && agent.desiredVelocity.magnitude > 0.1f && !agent.isStopped)
         {
-            agent.SetDestination(target.position);
-
-            // Control de la animación de movimiento
-            if (agent.desiredVelocity.magnitude > 0.1f && !agent.isStopped)
-            {
-                enemyAnimator.SetBool("IsMoving", true);
-            }
-            else
-            {
-                enemyAnimator.SetBool("IsMoving", false);
-            }
+            enemyAnimator.SetBool("IsMoving", true);
         }
         else
         {
-            // Mientras espera, se asegura de mantener la animación de Idle
             enemyAnimator.SetBool("IsMoving", false);
         }
     }
@@ -75,6 +72,9 @@ public class EnemyNavigation : MonoBehaviour
         if (isDead) return;
         isDead = true;
 
+        // Cancelamos el Invoke de inmediato para que deje de buscar destino
+        CancelInvoke("UpdateTarget");
+
         Debug.Log("Enemy has died!");
 
         // Apagamos el movimiento
@@ -83,8 +83,11 @@ public class EnemyNavigation : MonoBehaviour
         // Activamos la animación de muerte
         enemyAnimator.SetTrigger("Die");
 
-        agent.isStopped = true;
-        agent.enabled = false;
+        if (agent != null && agent.isOnNavMesh)
+        {
+            agent.isStopped = true;
+            agent.enabled = false;
+        }
 
         // Desactivar el colisionador
         Collider col = GetComponent<Collider>();
@@ -93,14 +96,14 @@ public class EnemyNavigation : MonoBehaviour
             col.enabled = false;
         }
 
-        // Iniciamos la secuencia de espera antes de sumar la victoria y destruir
+        // Iniciamos la secuencia de muerte de 5.2 segundos
         StartCoroutine(DeathSequence());
     }
 
     IEnumerator DeathSequence()
     {
-        // Espera a que termine la animación de muerte
-        yield return new WaitForSeconds(2f);
+        // Espera los 5.2 segundos que dura la animación de muerte
+        yield return new WaitForSeconds(deathAnimationDuration);
 
         // Sumar la baja al PlayerManager (esto activará la victoria si es el último)
         PlayerManager player = FindObjectOfType<PlayerManager>();
@@ -109,7 +112,7 @@ public class EnemyNavigation : MonoBehaviour
             player.AddDefeatedEnemy();
         }
 
-        // Destruir el objeto
+        // Destruir el objeto de la escena
         Destroy(gameObject);
     }
 }
