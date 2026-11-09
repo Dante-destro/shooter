@@ -1,36 +1,43 @@
 using UnityEngine;
 using UnityEngine.UI;
-using TMPro;    
+using TMPro;
 
-public class recive : MonoBehaviour
+public class ReceiveDamage : MonoBehaviour
 {
-    public int health = 100;
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
     public TextMeshProUGUI healthText;
+
+    public int health = 100;
+
+    public EnemyNavigation enemyNavigation;
+
     void Start()
     {
-        
+        enemyNavigation = GetComponent<EnemyNavigation>();
     }
 
-    // Update is called once per frame
+
     void Update()
     {
-        
+
     }
+
     private void OnCollisionEnter(Collision collision)
     {
         if (collision.gameObject.CompareTag("Projectile"))
         {
-            Debug.Log("Received damage from projectile");
+            Debug.Log("Received damage from projectile!");
+
             Destroy(collision.gameObject);
-            health -= 20;
-            healthText.text =  health.ToString();
-            Debug.Log("Health: " + health);
+
+            health -= 25;
+            healthText.text = health.ToString();
+
             if (health <= 0)
             {
-                Debug.Log("Object destroyed");
-                Destroy(gameObject);
+                Debug.Log("Enemy has died!");
+                enemyNavigation.Die();
             }
         }
     }
+
 }
