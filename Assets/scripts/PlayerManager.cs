@@ -10,9 +10,10 @@ public class PlayerManager : MonoBehaviour
     public TextMeshProUGUI healthText;
     public Image healthBar;
 
-    [Header("Monedas / Puntuación")]
-    public int coins = 0;
-    public TextMeshProUGUI coinsText;
+    [Header("Contador de Enemigos y Victoria")]
+    public int enemiesToWin = 5;         // Cantidad de enemigos necesarios para ganar
+    private int defeatedEnemies = 0;     // Enemigos actuales derrotados
+    public TextMeshProUGUI enemiesText;  // Texto en UI para mostrar el contador (ej. "Enemigos: 0/5")
 
     void Start()
     {
@@ -20,7 +21,7 @@ public class PlayerManager : MonoBehaviour
         UpdateUI();
     }
 
-    // Recibir daño (por ejemplo, cuando el enemigo choca o ataca al jugador)
+    // Recibir daño
     public void TakeDamage(int damage)
     {
         currentHealth -= damage;
@@ -30,36 +31,61 @@ public class PlayerManager : MonoBehaviour
 
         if (currentHealth <= 0)
         {
-            GameManager .Instance.TriggerDefeat();
+            if (GameManager.Instance != null)
+            {
+                GameManager.Instance.TriggerDefeat();
+            }
+            else
+            {
+                Debug.LogWarning("GameManager.Instance no encontrado en la escena.");
+            }
         }
     }
 
-    // Recoger monedas
-    public void AddCoins(int amount)
+    // Método para registrar enemigos derrotados (llamado desde el enemigo o proyectil)
+    public void AddDefeatedEnemy()
     {
-        coins += amount;
+        defeatedEnemies++;
         UpdateUI();
 
-        // Opcional: Condición de victoria por acumular cierta cantidad de monedas (ej. 5 monedas)
-        if (coins >= 5)
+        Debug.Log("Enemigo derrotado. Total: " + defeatedEnemies);
+
+        // Condición de victoria basada en el contador de enemigos
+        if (defeatedEnemies >= enemiesToWin)
         {
-            GameManager.Instance.TriggerVictory();
+            if (GameManager.Instance != null)
+            {
+                GameManager.Instance.TriggerVictory();
+            }
+            else
+            {
+                Debug.LogWarning("GameManager.Instance no encontrado en la escena.");
+            }
         }
     }
 
     void UpdateUI()
     {
+        // Actualizar vida
         if (healthText != null) healthText.text = currentHealth.ToString();
         if (healthBar != null) healthBar.fillAmount = (float)currentHealth / maxHealth;
-        if (coinsText != null) coinsText.text = coins.ToString();
+
+        // Actualizar contador de enemigos en la UI
+        if (enemiesText != null)
+        {
+            enemiesText.text = "Enemigos: " + defeatedEnemies + " / " + enemiesToWin;
+        }
     }
 
     // Detectar si el enemigo colisiona con el jugador para hacerle daño
     private void OnCollisionEnter(Collision collision)
     {
-        if (collision.gameObject.CompareTag("Enemy"))
+        if (collision != null && collision.gameObject != null)
         {
-            TakeDamage(10); // Daño que recibe el jugador al tocar al enemigo
+            if (collision.gameObject.CompareTag("Enemy"))
+            {
+                TakeDamage(10); // Daño que recibe el jugador al tocar al enemigo
+            }
         }
     }
 }

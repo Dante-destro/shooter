@@ -1,20 +1,27 @@
 using UnityEngine;
-using UnityEngine.UI;
 using TMPro;
 
-public class ReceiveDamage : MonoBehaviour
+public class receiveDamage : MonoBehaviour
 {
     public TextMeshProUGUI healthText;
 
     public int health = 100;
 
-    public EnemyNavigation enemyNavigation;
+    public enemyNavigation enemyNavigation;
+
+    [Header("Animación")]
+    public Animator animator; // Referencia al Animator del enemigo
 
     void Start()
     {
-        enemyNavigation = GetComponent<EnemyNavigation>();
-    }
+        enemyNavigation = GetComponent<enemyNavigation>();
 
+        // Si no asignaste el Animator en el inspector, lo busca automáticamente en el objeto
+        if (animator == null)
+        {
+            animator = GetComponent<Animator>();
+        }
+    }
 
     void Update()
     {
@@ -30,14 +37,29 @@ public class ReceiveDamage : MonoBehaviour
             Destroy(collision.gameObject);
 
             health -= 25;
-            healthText.text = health.ToString();
+
+            // Protección por si healthText es nulo en algún momento
+            if (healthText != null)
+            {
+                healthText.text = health.ToString();
+            }
 
             if (health <= 0)
             {
                 Debug.Log("Enemy has died!");
-                enemyNavigation.Die();
+
+                // 1. Activar la animación de muerte si el Animator existe
+                if (animator != null)
+                {
+                    animator.SetTrigger("Die"); // Asegúrate de tener un Trigger llamado "Die" en tu Animator
+                }
+
+                // 2. Llamar al método de muerte del navegador/enemigo
+                if (enemyNavigation != null)
+                {
+                    enemyNavigation.Die();
+                }
             }
         }
     }
-
 }

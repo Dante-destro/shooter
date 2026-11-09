@@ -257,7 +257,7 @@ GameObject:
   - component: {fileID: 3969164218162084141}
   m_Layer: 0
   m_Name: Capsule
-  m_TagString: enemy
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -372,8 +372,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: df21e7c87896a5d49a457e6aae7af668, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::recive
-  health: 100
   healthText: {fileID: 9133926975267237159}
+  health: 100
+  enemyNavigation: {fileID: 0}
 --- !u!195 &5981723290768336148
 NavMeshAgent:
   m_ObjectHideFlags: 0
@@ -410,6 +411,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::enemiNavigator
   agent: {fileID: 0}
   target: {fileID: 0}
+  enemyAnimator: {fileID: 0}
+  isDead: 0
 --- !u!1 &7416173571364331217
 GameObject:
   m_ObjectHideFlags: 0
